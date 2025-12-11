@@ -1,0 +1,21 @@
+{
+  "type": "default",
+  "custom": null,
+  "sidebar": true,
+  "split": 50,
+  "include": {
+    "maps": true,
+    "charts": true,
+    "tables": true
+  },
+  "primary": "charts",
+  "order": [
+    "charts",
+    "maps",
+    "tables"
+  ],
+  "title": "A seasonality analysis and water balance on USW00014990",
+  "description": "This application highlights both seasonality components of the temperature and precipitation estimates using cumulative water balances.",
+  "showcaseHeader": "",
+  "showcaseSubheader": ""
+}

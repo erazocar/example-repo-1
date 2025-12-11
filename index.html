@@ -1,0 +1,616 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HydroBlox Results Viewer</title>
+    <link rel="icon" type="image/svg+xml" href="./icons/icon-192.svg">
+    <link rel="manifest" href="./manifest.json">
+    
+    <!-- CDN First: Bootstrap and Font Awesome (always reliable) -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+    
+    <!-- App styles -->
+    <link rel="stylesheet" href="styles/results.css">
+    <link rel="stylesheet" href="styles/data-visualizer.css">
+    <link rel="stylesheet" href="styles/exports.css">
+    <meta name="theme-color" content="#3498db">
+</head>
+<body class="results-mode">
+    <!-- Custom Header/Subheader Container (Bootstrap structure, populated by app.js) -->
+    <div id="custom-header-container" class="container-fluid" style="display: none;"></div>
+    <div class="results-wrapper"><!-- Main Content Area -->
+<div class="main-content">
+    <!-- Compact Header with Inline Controls & Metrics -->
+    <div class="results-header">
+        <div class="header-left">
+            <div class="workflow-controls">
+                <div class="control-group inline">
+                    <label>Workflow:</label>
+                    <select id="workflow-select">
+                        <option value="">Choose workflow...</option>
+                    </select>
+                </div>
+                <div class="control-group inline">
+                    <label>Item:</label>
+                    <select id="dataset-select">
+                        <option value="">Choose item...</option>
+                    </select>
+                </div>
+                <button class="export-button">
+                    <i class="fas fa-download"></i>
+                    Export
+                </button>
+            </div>
+        </div>
+        
+        <div class="header-right">
+            <div class="quick-metrics">
+                <div class="metric-chip" id="total-datasets-chip">
+                    <i class="fas fa-database"></i>
+                    <span id="total-datasets">0 datasets</span>
+                </div>
+                <div class="metric-chip" id="total-visualizations-chip">
+                    <i class="fas fa-chart-line"></i>
+                    <span id="total-visualizations">0 viz</span>
+                </div>
+                <div class="metric-chip" id="last-run-time-chip">
+                    <i class="fas fa-clock"></i>
+                    <span id="last-run-time">No runs</span>
+                </div>
+                <div class="metric-chip" id="performance-metric-chip">
+                    <i class="fas fa-tachometer-alt"></i>
+                    <span id="performance-metric">100%</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Content Grid -->
+    <div class="content-grid">
+        <!-- Primary Visualization Area -->
+        <div class="viz-main">
+            <div class="panel-header">
+                <div class="panel-title">
+                    <i class="fas fa-chart-area"></i>
+                    <h3>Visualizations</h3>
+                    <span class="count">0 items</span>
+                </div>
+                <div class="panel-actions">
+                    <div class="visualization-tabs">
+                        <button class="tab-button active" data-tab="maps">
+                            <i class="fas fa-map"></i>
+                            Maps
+                        </button>
+                        <button class="tab-button" data-tab="charts">
+                            <i class="fas fa-chart-line"></i>
+                            Charts
+                        </button>
+                        <button class="tab-button" data-tab="tables">
+                            <i class="fas fa-table"></i>
+                            Tables
+                        </button>
+                    </div>
+                    <div class="panel-tools">
+                        <button class="tool-btn" title="Toggle Combined View" id="toggle-combined-view-btn">
+                            <i class="fas fa-th-large"></i>
+                        </button>
+                        <button class="tool-btn" title="Expand Current Visualization" id="expand-viz-btn">
+                            <i class="fas fa-expand"></i>
+                        </button>
+                        <button class="tool-btn" title="Refresh Visualizations" id="refresh-viz-btn">
+                            <i class="fas fa-sync"></i>
+                        </button>
+                        <button class="tool-btn" title="Export Current View" id="export-viz-btn">
+                            <i class="fas fa-download"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="viz-content">
+                <div class="visualization-section active" id="maps-section">
+                    <div class="placeholder" data-type="map">
+                        <i class="fas fa-map"></i>
+                        <p>No maps available. Add map items to your workflow to see them here.</p>
+                    </div>
+                    <div id="map" style="display: none; width: 100%; height: 100%; min-height: 400px;"></div>
+                    <div class="maps-grid"></div>
+                </div>
+                
+                <div class="visualization-section" id="charts-section">
+                    <div class="placeholder" data-type="chart">
+                        <i class="fas fa-chart-line"></i>
+                        <p>No charts available. Add graph items to your workflow to see them here.</p>
+                    </div>
+                    <div class="charts-grid"></div>
+                </div>
+                
+                <div class="visualization-section" id="tables-section">
+                    <div class="placeholder" data-type="table">
+                        <i class="fas fa-table"></i>
+                        <p>No tables available. Add table items to your workflow to see them here.</p>
+                    </div>
+                    <div class="tables-grid"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Secondary Panels -->
+        <div class="side-panels">
+            <!-- Reports Panel -->
+            <div class="panel reports-panel">
+                <div class="panel-header">
+                    <div class="panel-title">
+                        <i class="fas fa-file-alt"></i>
+                        <h3>Reports</h3>
+                        <span class="count">0 items</span>
+                    </div>
+                    <div class="panel-actions">
+                        <button class="tool-btn" title="Export All Reports" id="export-reports-btn">
+                            <i class="fas fa-download"></i>
+                        </button>
+                    </div>
+                </div>
+                <div class="panel-content">
+                    <div class="report-list"></div>
+                    <div class="empty-state" data-type="report">
+                        <i class="fas fa-file-alt"></i>
+                        <h4>No Reports</h4>
+                        <p>Run workflows to generate reports</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Data Summary Panel -->
+            <div class="panel data-panel">
+                <div class="panel-header">
+                    <div class="panel-title">
+                        <i class="fas fa-database"></i>
+                        <h3>Data Summary</h3>
+                    </div>
+                    <div class="panel-actions">
+                        <button class="tool-btn" title="Refresh">
+                            <i class="fas fa-sync"></i>
+                        </button>
+                    </div>
+                </div>
+                <div class="panel-content">
+                    <div class="data-stats">
+                        <div class="stat-item">
+                            <label>Total Size</label>
+                            <span id="data-usage">0 MB</span>
+                        </div>
+                        <div class="stat-item">
+                            <label>Last Updated</label>
+                            <span id="last-update">Never</span>
+                        </div>
+                        <div class="stat-item">
+                            <label>Status</label>
+                            <span class="status-badge ready">Ready</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Layout Selection Modal -->
+<div id="layout-select-modal" class="layout-modal hidden">
+    <div class="layout-modal-content">
+        <div class="layout-modal-header">
+            <h2>Choose Export Layout</h2>
+            <button class="modal-close">&times;</button>
+        </div>
+        <div class="layout-modal-body">
+        
+        <div class="layout-options">
+            <div class="layout-section">
+                <h3>Select Workflows to Export</h3>
+                <div class="workflow-selection-container">
+                    <div class="workflow-selection-controls">
+                        <button type="button" class="btn btn-sm btn-outline-secondary" id="select-all-workflows">Select All</button>
+                        <button type="button" class="btn btn-sm btn-outline-secondary" id="deselect-all-workflows">Deselect All</button>
+                    </div>
+                    <div class="workflow-checkbox-list" id="workflow-checkbox-list">
+                        <!-- Workflows will be populated here -->
+                    </div>
+                    <small class="text-muted d-block mt-2">Only selected workflows will be included in the export</small>
+                </div>
+            </div>
+            
+            <div class="layout-section">
+                <h3>Preset Layouts</h3>
+                <div class="preset-layouts">
+                    <div class="layout-option" data-layout="default">
+                        <div class="layout-preview default-layout">
+                            <div class="preview-controls"></div>
+                            <div class="preview-main">
+                                <div class="preview-viz"></div>
+                                <div class="preview-sidebar"></div>
+                            </div>
+                        </div>
+                        <span>Default Layout</span>
+                    </div>
+                    
+                    <div class="layout-option" data-layout="full-width">
+                        <div class="layout-preview full-width-layout">
+                            <div class="preview-controls"></div>
+                            <div class="preview-main full">
+                                <div class="preview-viz wide"></div>
+                            </div>
+                        </div>
+                        <span>Full-width Visualization</span>
+                    </div>
+                    
+                    <div class="layout-option" data-layout="split">
+                        <div class="layout-preview split-layout">
+                            <div class="preview-controls"></div>
+                            <div class="preview-main split">
+                                <div class="preview-viz half"></div>
+                                <div class="preview-viz half"></div>
+                            </div>
+                        </div>
+                        <span>Split View</span>
+                    </div>
+                    
+                    <div class="layout-option" data-layout="showcase">
+                        <div class="layout-preview showcase-layout">
+                            <div class="preview-header"></div>
+                            <div class="preview-description"></div>
+                            <div class="preview-results"></div>
+                        </div>
+                        <span>Showcase Layout</span>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="layout-section" id="custom-layout-section" style="display: none;">
+                <h3>Custom Layout</h3>
+                <div class="custom-layout-option layout-option" data-layout="custom">
+                    <div id="custom-layout-preview" class="layout-preview custom-layout">
+                        <div class="preview-controls" data-resize="vertical"></div>
+                        <div class="preview-main">
+                            <div class="preview-viz" data-resize="both"></div>
+                            <div class="preview-sidebar" data-resize="horizontal"></div>
+                        </div>
+                    </div>
+                    <span class="custom-help-text">
+                        <strong>Drag the blue resize handles</strong> to set custom dimensions<br>
+                        <small>Controls bar (top) • Main content (center) • Sidebar (right)</small><br>
+                        <small style="color: #6c757d;">Double-click to reset to defaults</small>
+                    </span>
+                </div>
+            </div>
+        </div>
+        
+        <div class="layout-section">
+            <h3>Options</h3>
+            <div class="layout-options-controls">
+                <label class="control-inline">
+                    <input type="checkbox" id="toggle-sidebar" checked>
+                    Show Sidebar
+                </label>
+                <div class="split-controls" id="split-controls">
+                    <label for="split-ratio">Split Ratio: <span id="split-ratio-value">50</span>%</label>
+                    <input type="range" id="split-ratio" min="20" max="80" value="50" />
+                </div>
+            </div>
+        </div>
+
+        <div class="layout-section">
+            <h3>Content</h3>
+            <div class="layout-content-controls">
+                <label class="control-inline">
+                    <input type="checkbox" id="include-maps" checked>
+                    Include Maps
+                </label>
+                <label class="control-inline">
+                    <input type="checkbox" id="include-charts" checked>
+                    Include Charts
+                </label>
+                <label class="control-inline">
+                    <input type="checkbox" id="include-tables" checked>
+                    Include Tables
+                </label>
+                <label class="control-inline">
+                    Primary Section
+                    <select id="primary-tab">
+                        <option value="maps">Maps</option>
+                        <option value="charts">Charts</option>
+                        <option value="tables">Tables</option>
+                    </select>
+                </label>
+            </div>
+            <div class="section-order-wrapper">
+                <div class="section-order-label">Order (drag to reorder)</div>
+                <div class="section-order" id="section-order">
+                    <div class="order-chip" draggable="true" data-key="maps"><i class="fas fa-map"></i> Maps</div>
+                    <div class="order-chip" draggable="true" data-key="charts"><i class="fas fa-chart-line"></i> Charts</div>
+                    <div class="order-chip" draggable="true" data-key="tables"><i class="fas fa-table"></i> Tables</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="layout-section" id="showcase-content-section" style="display: none;">
+            <h3>Showcase Layout Content</h3>
+            <div class="app-details-section">
+                <div class="showcase-preview-container">
+                    <div class="showcase-preview-figure">
+                        <div class="preview-figure-header">
+                            <span class="preview-label">Header</span>
+                            <div class="preview-text-preview" id="showcase-header-preview">Your Header Title</div>
+                        </div>
+                        <div class="preview-figure-subheader">
+                            <span class="preview-label">Subheader</span>
+                            <div class="preview-text-preview" id="showcase-subheader-preview">Your subheader description...</div>
+                        </div>
+                        <div class="preview-figure-results">
+                            <span class="preview-label">Results</span>
+                            <div class="preview-text-preview">Maps, Charts, Tables</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <label for="showcase-header-input">Header Title</label>
+                <input type="text" id="showcase-header-input" class="app-title-input" placeholder="e.g., Iowa River Basin Flood Analysis" />
+                
+                <label for="showcase-subheader-input" style="margin-top: 12px;">Subheader / Description</label>
+                <textarea id="showcase-subheader-input" class="app-description-input" rows="4" placeholder="Describe what this application does and its purpose...
+
+Example:
+This application analyzes precipitation patterns in the Iowa River Basin from 2020-2023. It includes:
+• NOAA GHCN precipitation data
+• Statistical trend analysis using Mann-Kendall test
+• Interactive charts showing seasonal variations
+• Key finding: 15% increase in extreme precipitation events"></textarea>
+                
+                <small style="color: #6c757d; margin-top: 4px; display: block;">
+                    These fields control the header and subheader displayed in the showcase layout. 
+                    The preview above shows where each field will appear.
+                </small>
+            </div>
+        </div>
+
+        <div class="layout-section">
+            <h3>App Metadata <span style="color: #dc3545;">*</span></h3>
+            <div class="app-details-section">
+                <label for="app-title-input">Application Title <span style="color: #dc3545;">*</span></label>
+                <input type="text" id="app-title-input" class="app-title-input" required placeholder="e.g., Iowa River Basin Flood Analysis" />
+                
+                <label for="app-datasources-input" style="margin-top: 12px;">Data Sources <span style="color: #dc3545;">*</span></label>
+                <textarea id="app-datasources-input" class="app-description-input" rows="3" required placeholder="List the data sources used in this application...
+
+Example:
+• NOAA GHCN Daily Precipitation Data
+• USGS Streamflow Gauge Data
+• FEMA Flood Hazard Maps"></textarea>
+                
+                <label for="app-description-input" style="margin-top: 12px;">Application Description <span style="color: #dc3545;">*</span></label>
+                <textarea id="app-description-input" class="app-description-input" rows="5" required placeholder="Describe your application's purpose, methodology, and key findings...
+
+Example:
+This application analyzes precipitation patterns in the Iowa River Basin from 2020-2023. It includes:
+• Statistical trend analysis using Mann-Kendall test
+• Interactive charts showing seasonal variations
+• Key finding: 15% increase in extreme precipitation events"></textarea>
+                
+                <small style="color: #6c757d; margin-top: 4px; display: block;">
+                    <span style="color: #dc3545;">*</span> Required fields. This metadata will be saved and used to render the app name and information.
+                </small>
+            </div>
+        </div>
+        
+        </div>
+        <div class="layout-modal-footer">
+            <button class="btn-secondary" id="cancel-layout">Cancel</button>
+            <button class="btn-primary" id="apply-layout">Apply & Export</button>
+        </div>
+    </div>
+</div>
+
+<!-- Expand Modal for Visualizations -->
+<div id="expand-modal" class="expand-modal">
+    <div class="expand-modal-content">
+        <div class="expand-modal-header">
+            <div class="expand-modal-title">
+                <i class="fas fa-expand-alt"></i>
+                <span id="expand-modal-title-text">Visualization Editor</span>
+            </div>
+            <div class="expand-modal-controls">
+                <button class="expand-control-btn" id="expand-edit-btn">
+                    <i class="fas fa-edit"></i>
+                    Edit
+                </button>
+                <button class="expand-control-btn" id="expand-download-btn">
+                    <i class="fas fa-download"></i>
+                    Download
+                </button>
+                <button class="expand-control-btn primary" id="expand-save-btn">
+                    <i class="fas fa-save"></i>
+                    Save Changes
+                </button>
+                <button class="modal-close-btn" id="expand-close-btn">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+        </div>
+        <div class="expand-modal-body">
+            <div class="expand-visualization-container" id="expand-viz-container">
+                <div class="expand-placeholder">
+                    <i class="fas fa-chart-area"></i>
+                    <h3>No Visualization Selected</h3>
+                    <p>Select a visualization from the main panel and click expand to edit it here.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div></div>
+
+    <script>
+        // Register service worker for offline support
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('sw.js')
+                .then(reg => console.log('ServiceWorker registered:', reg.scope))
+                .catch(err => console.error('ServiceWorker registration failed:', err));
+        }
+    </script>
+    
+    <!-- Core JS libraries -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="js/db-manager.js"></script>
+    <script type="module" src="js/metadata-explorer.js"></script>
+    
+    <script type="module">
+        // Initialize Hydrolang directly (no wrapper)
+        console.log('Starting Hydrolang initialization...');
+        
+        try {
+            // Import Hydrolang core modules
+            const hydrolangModule = await import('./js/hydrolang/hydrolang.js');
+            const module56 = await import('./js/hydrolang/56.hydrolang.js');
+            const module163 = await import('./js/hydrolang/163.hydrolang.js');
+            const module181 = await import('./js/hydrolang/181.hydrolang.js');
+            const module275 = await import('./js/hydrolang/275.hydrolang.js');
+            const modulee972 = await import('./js/hydrolang/972.hydrolang.js');
+            console.log('✓ Hydrolang modules loaded');
+            
+            // Initialize Hydrolang directly (no wrapper)
+            if (typeof hydrolangModule.default !== 'undefined') {
+                window.Hydrolang = hydrolangModule.default;
+            } else if (window.Hydrolang) {
+                // Already available globally
+            } else {
+                throw new Error('Hydrolang class not found after module import');
+            }
+            
+            // Create Hydrolang instance and wait for ready
+            window.lang = await new window.Hydrolang()
+            
+            console.log('✓ Hydrolang initialized successfully');
+            console.log('✓ Available functions: map.renderMap, map.Layers, visualize.draw');
+            document.dispatchEvent(new CustomEvent('modules-loaded'));
+            
+        } catch (error) {
+            console.error('✗ Hydrolang initialization failed:', error);
+            console.warn('Attempting fallback script loading...');
+            
+            // Fallback to script tag loading
+            const scripts = [
+                './js/hydrolang/hydrolang.js',
+                './js/hydrolang/56.hydrolang.js',
+                './js/hydrolang/163.hydrolang.js',
+                './js/hydrolang/181.hydrolang.js',
+                './js/hydrolang/275.hydrolang.js',
+                './js/hydrolang/972.hydrolang.js'
+            ];
+            
+            for (const src of scripts) {
+                const script = document.createElement('script');
+                script.src = src;
+                script.type = 'module';
+                script.onerror = () => console.error('Failed to load:', src);
+                document.head.appendChild(script);
+            }
+            
+            // Try to initialize after a delay
+            setTimeout(async () => {
+                if (window.Hydrolang) {
+                    try {
+                        window.lang = await new window.Hydrolang({includeVisuals: true, cache: false})
+                    console.log('✓ Hydrolang initialized via fallback');
+                    document.dispatchEvent(new CustomEvent('modules-loaded'));
+                    } catch (error) {
+                        console.error('✗ Hydrolang initialization failed:', error);
+                        document.dispatchEvent(new CustomEvent('modules-load-error', { detail: error.message }));
+                    }
+                } else {
+                    console.error('⚠ Hydrolang completely failed to load');
+                    document.dispatchEvent(new CustomEvent('modules-load-error', { detail: 'Complete failure' }));
+                }
+            }, 2000);
+        }
+    </script>
+    
+    <script>
+        // Import exported data into IndexedDB on first load
+        (async function() {
+            if (window.db && typeof window.db.initDB === 'function') {
+                try {
+                    await window.db.initDB();
+                    await window.db.importData({ updateProgress: (m) => console.log('[Import]', m) });
+                } catch (e) { console.warn('DB import failed', e); }
+            }
+            
+            // Clean up UI elements that don't belong in exported app
+            console.log('Cleaning up exported app UI...');
+            try {
+                // Remove export button
+                const exportBtn = document.querySelector('.export-button');
+                if (exportBtn) {
+                    exportBtn.remove();
+                    console.log('Removed export button');
+                }
+                
+                // Remove all metric chips (datasets, visualizations, runs, performance)
+                const metricChips = document.querySelectorAll('.metric-chip');
+                metricChips.forEach(chip => chip.remove());
+                console.log('Removed metric chips:', metricChips.length);
+                
+                // Remove quick metrics container
+                const quickMetrics = document.querySelector('.quick-metrics');
+                if (quickMetrics) {
+                    quickMetrics.remove();
+                    console.log('Removed quick metrics container');
+                }
+                
+                // Remove header-right if it's now empty
+                const headerRight = document.querySelector('.header-right');
+                if (headerRight && headerRight.children.length === 0) {
+                    headerRight.remove();
+                    console.log('Removed empty header-right');
+                }
+                
+                // Remove status badges
+                document.querySelectorAll('.status-badge').forEach(el => el.remove());
+                
+                // Remove layout modal (not needed in exported app)
+                const layoutModal = document.getElementById('layout-select-modal');
+                if (layoutModal) {
+                    layoutModal.remove();
+                    console.log('Removed layout modal');
+                }
+                
+                console.log('UI cleanup complete');
+            } catch (error) {
+                console.warn('Error during UI cleanup:', error);
+            }
+        })();
+    </script>
+    <script src="js/app.js?v=1765463172296"></script>
+    <script>
+        // Polyfill initializeVisualizationContainer if missing and start app after Hydrolang ready
+        if (typeof window.ExportedApp !== 'undefined' &&
+            typeof window.ExportedApp.prototype.initializeVisualizationContainer !== 'function') {
+            window.ExportedApp.prototype.initializeVisualizationContainer = function () {
+                var container = document.getElementById('visualization-container');
+                if (!container) {
+                    var vizSection = document.querySelector('.visualization-section') || document.createElement('div');
+                    if (!vizSection.parentNode) {
+                        vizSection.className = 'visualization-section';
+                        (document.querySelector('.results-wrapper') || document.body).appendChild(vizSection);
+                    }
+                    container = document.createElement('div');
+                    container.id = 'visualization-container';
+                    vizSection.appendChild(container);
+                }
+            };
+        }
+        const startApp = () => { try { const app = new ExportedApp(); app.initialize(); } catch (e) { console.error(e); } };
+        if (window.suite) startApp(); else document.addEventListener('modules-loaded', startApp, { once: true });
+    </script>
+</body>
+</html>

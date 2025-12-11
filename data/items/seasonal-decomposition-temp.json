@@ -1,0 +1,28 @@
+{
+  "data": null,
+  "settings": {
+    "name": "SEASONAL_DECOMPOSITION_TEMP",
+    "parameters": {
+      "type": "chart",
+      "partition": "true",
+      "maxPoints": "50",
+      "name": "Seasonality Changes 2020-2024"
+    },
+    "arguments": {
+      "names": "Original, Trends, Seasonal, Residuals"
+    },
+    "uniqueId": "seasonal-decomposition-temp",
+    "x": 697,
+    "y": 82,
+    "selectedFunction": "seasonal",
+    "data": [
+      "seasonal"
+    ],
+    "itemName": "draw",
+    "type": "visualization"
+  },
+  "uniqueId": "seasonal-decomposition-temp",
+  "itemName": "draw",
+  "type": "visualization",
+  "name": "SEASONAL_DECOMPOSITION_TEMP"
+}

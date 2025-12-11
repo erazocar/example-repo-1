@@ -1,0 +1,341 @@
+{
+  "workflow-9": {
+    "id": "workflow-9",
+    "name": "precip-data-raw",
+    "items": [
+      {
+        "uniqueId": "precip-data-raw",
+        "name": "precip-data-raw",
+        "itemName": "retrieve",
+        "type": "data",
+        "parameters": {
+          "source": "database",
+          "datatype": "reference",
+          "referenceId": "precip-data-raw"
+        },
+        "arguments": {
+          "referenceId": "precip-data-raw",
+          "timestamp": "2025-12-11T13:25:37.740Z"
+        },
+        "data": [],
+        "settings": {
+          "name": "precip-data-raw",
+          "uniqueId": "precip-data-raw",
+          "type": "data",
+          "itemName": "retrieve",
+          "x": 518,
+          "y": 354.79376220703125,
+          "parameters": {
+            "source": "database",
+            "datatype": "reference",
+            "referenceId": "precip-data-raw"
+          },
+          "arguments": {
+            "referenceId": "precip-data-raw",
+            "timestamp": "2025-12-11T13:25:37.740Z"
+          },
+          "isReference": true,
+          "skipExecution": true,
+          "referenceData": {
+            "id": "precip-data-raw",
+            "timestamp": "2025-12-11T13:25:37.740Z"
+          }
+        },
+        "status": "completed"
+      }
+    ],
+    "connections": [],
+    "created": "2025-12-11T14:20:04.193Z"
+  },
+  "seasonalityanalysis-stausw00014990-2020-2024": {
+    "id": "seasonalityanalysis-stausw00014990-2020-2024",
+    "name": "SEASONALITYANALYSIS_STAUSW00014990_2020-2024",
+    "items": [
+      {
+        "uniqueId": "clean-temp",
+        "name": "CLEAN_TEMP",
+        "itemName": "interoutliers",
+        "type": "analyze",
+        "parameters": {
+          "q1": "0.25",
+          "q2": "0.75"
+        },
+        "arguments": {},
+        "data": [
+          "num-temps"
+        ],
+        "settings": {
+          "name": "CLEAN_TEMP",
+          "parameters": {
+            "q1": "0.25",
+            "q2": "0.75"
+          },
+          "arguments": {},
+          "uniqueId": "clean-temp",
+          "x": 529,
+          "y": 245,
+          "selectedFunction": "interoutliers",
+          "data": [
+            "num-temps"
+          ],
+          "itemName": "interoutliers",
+          "type": "analyze",
+          "component": "stats",
+          "position": {
+            "x": 50,
+            "y": 344
+          }
+        },
+        "status": "completed"
+      },
+      {
+        "uniqueId": "seasonal",
+        "name": "Seasonal",
+        "itemName": "seasonalDecompose",
+        "type": "analyze",
+        "parameters": {},
+        "arguments": {},
+        "data": [
+          "clean-temp"
+        ],
+        "settings": {
+          "name": "Seasonal",
+          "parameters": {},
+          "arguments": {},
+          "uniqueId": "seasonal",
+          "x": 327,
+          "y": 294,
+          "component": "stats",
+          "selectedFunction": "seasonalDecompose",
+          "data": [
+            "clean-temp"
+          ],
+          "itemName": "seasonalDecompose",
+          "type": "analyze",
+          "position": {
+            "x": 328,
+            "y": 211
+          }
+        },
+        "status": "completed"
+      },
+      {
+        "uniqueId": "seasonal-decomposition-temp",
+        "name": "SEASONAL_DECOMPOSITION_TEMP",
+        "itemName": "draw",
+        "type": "visualization",
+        "parameters": {
+          "type": "chart",
+          "partition": "true",
+          "maxPoints": "50",
+          "name": "Seasonality Changes 2020-2024"
+        },
+        "arguments": {
+          "names": "Original, Trends, Seasonal, Residuals"
+        },
+        "data": [
+          "seasonal"
+        ],
+        "settings": {
+          "name": "SEASONAL_DECOMPOSITION_TEMP",
+          "parameters": {
+            "type": "chart",
+            "partition": "true",
+            "maxPoints": "50",
+            "name": "Seasonality Changes 2020-2024"
+          },
+          "arguments": {
+            "names": "Original, Trends, Seasonal, Residuals"
+          },
+          "uniqueId": "seasonal-decomposition-temp",
+          "x": 697,
+          "y": 82,
+          "selectedFunction": "seasonal",
+          "data": [
+            "seasonal"
+          ],
+          "itemName": "draw",
+          "type": "visualization"
+        },
+        "status": "completed"
+      },
+      {
+        "uniqueId": "analyze-Code Block-1",
+        "name": "MY_FIRST_CB",
+        "itemName": "Code Block",
+        "type": "analyze",
+        "parameters": {},
+        "arguments": {},
+        "data": [
+          "num-precip",
+          "clean-temp"
+        ],
+        "settings": {
+          "type": "analyze",
+          "itemName": "Code Block",
+          "uniqueId": "analyze-Code Block-1",
+          "parameters": {},
+          "arguments": {},
+          "data": [
+            "num-precip",
+            "clean-temp"
+          ],
+          "language": "python",
+          "code": "# Penman-Monteith Evapotranspiration Model\n# Requires 2 transform inputs with type: ARR format [[datetime], [value]]\n# Make sure to add 'numpy' and 'scipy' to libraries\n\nimport numpy as np\n\n# Handle multiple data inputs (array of dependency results)\nif isinstance(data, list) and len(data) >= 2:\n    # Multiple dependencies - data is array: [precip_data, temp_data]\n    precip_raw = data[0]\n    temp_raw = data[1]\nelse:\n    raise ValueError(f'Need both precipitation and temperature data. Received: {type(data)}')\n\n# Extract numeric values from transform block output\n# Transform blocks with type: ARR return format: [[datetime_col], [value_col]]\n# NOTE: Columns may be swapped - dateTime column might be first or second\ndef extract_values(data_input):\n    \"\"\"Extract numeric values from transform block ARR format\"\"\"\n    if not data_input:\n        return []\n    \n    values = []\n    \n    # Handle ARR format: [[datetime_col], [value_col]]\n    # Data from JS arrays converts to Python lists, so we check for list/tuple\n    if isinstance(data_input, list) and len(data_input) == 2:\n        if (isinstance(data_input[0], (list, tuple)) and \n            isinstance(data_input[1], (list, tuple)) and\n            len(data_input[0]) > 0 and len(data_input[1]) > 0):\n            \n            # CRITICAL: Identify columns by header first (more reliable than guessing)\n            # Headers indicate which column is which: \"@dateTime\" or \"#text\"\n            value_col_idx = None\n            datetime_col_idx = None\n            \n            # Check headers to identify columns\n            for col_idx in [0, 1]:\n                col = data_input[col_idx]\n                if len(col) > 0 and isinstance(col[0], str):\n                    header = col[0].strip()\n                    # Check if this is the value column header\n                    if header == '#text' or header.startswith('#') or header.lower() in ['value', 'text', 'data']:\n                        value_col_idx = col_idx\n                    # Check if this is the datetime column header\n                    elif header == '@dateTime' or header.startswith('@') or 'date' in header.lower() or 'time' in header.lower():\n                        datetime_col_idx = col_idx\n            \n            # If we identified columns by header, use that\n            if value_col_idx is not None:\n                value_col = data_input[value_col_idx]\n                start_idx = 1 if len(value_col) > 0 and isinstance(value_col[0], str) else 0\n                \n                # Extract all numeric values from the value column\n                for i in range(start_idx, len(value_col)):\n                    try:\n                        val = value_col[i]\n                        # Skip date strings (starts with \"20\" or contains date-like patterns)\n                        if isinstance(val, str):\n                            if val.startswith('20') or len(val) > 15 or ('-' in val and len(val) > 8):\n                                continue\n                        float_val = float(val)\n                        values.append(float_val)\n                    except (ValueError, TypeError):\n                        continue\n                \n                if len(values) > 0:\n                    return values\n            \n            # Fallback: Detect which column has numeric values by testing content\n            # Test both columns to find the one with numeric data\n            for col_idx in [0, 1]:\n                if col_idx < len(data_input) and isinstance(data_input[col_idx], (list, tuple)) and len(data_input[col_idx]) > 1:\n                    test_col = data_input[col_idx]\n                    # Skip header if present\n                    start_idx = 1 if len(test_col) > 0 and isinstance(test_col[0], str) else 0\n                    \n                    # Test if this column has numeric values (try first 20 non-header elements)\n                    numeric_count = 0\n                    for i in range(start_idx, min(start_idx + 20, len(test_col))):\n                        try:\n                            val = test_col[i]\n                            # Try to convert to float\n                            float_val = float(val)\n                            # Reject if it looks like a date (starts with \"20\", contains dashes, or is too long)\n                            if isinstance(val, str):\n                                if val.startswith('20') or len(val) > 15 or ('-' in val and len(val) > 8):\n                                    continue\n                            numeric_count += 1\n                        except (ValueError, TypeError):\n                            continue\n                    \n                    # If we found at least 3 numeric values, this is likely the value column\n                    if numeric_count >= 3:\n                        # Extract all numeric values from this column\n                        for i in range(start_idx, len(test_col)):\n                            try:\n                                val = test_col[i]\n                                # Skip date strings\n                                if isinstance(val, str):\n                                    if val.startswith('20') or len(val) > 15 or ('-' in val and len(val) > 8):\n                                        continue\n                                float_val = float(val)\n                                values.append(float_val)\n                            except (ValueError, TypeError):\n                                continue\n                        \n                        if len(values) > 0:\n                            return values\n            \n            # Final fallback: try index 1 then index 0 with header skipping\n            for col_idx in [1, 0]:\n                if col_idx < len(data_input) and isinstance(data_input[col_idx], (list, tuple)):\n                    value_col = data_input[col_idx]\n                    start_idx = 1 if len(value_col) > 0 and isinstance(value_col[0], str) else 0\n                    \n                    for i in range(start_idx, len(value_col)):\n                        try:\n                            val = value_col[i]\n                            # Skip date strings\n                            if isinstance(val, str):\n                                if val.startswith('20') or len(val) > 15 or ('-' in val and len(val) > 8):\n                                    continue\n                            values.append(float(val))\n                        except (ValueError, TypeError):\n                            continue\n                    \n                    if len(values) > 0:\n                        return values\n    \n    # Legacy format: array of objects with @dateTime and #text\n    # Format: [{\"@dateTime\": \"1980-01-01\", \"#text\": \"-1.1\"}, ...]\n    if isinstance(data_input, list):\n        data_array = data_input\n    elif isinstance(data_input, dict):\n        data_array = [data_input]\n    else:\n        try:\n            data_array = list(data_input)\n        except:\n            return []\n    \n    # Iterate through the array and extract #text values\n    for item in data_array:\n        if isinstance(item, dict):\n            # Look for #text key (primary) or value/text (fallback)\n            text_value = item.get('#text', item.get('value', item.get('text', None)))\n            if text_value is not None:\n                try:\n                    val = float(text_value)\n                    values.append(val)\n                except (ValueError, TypeError):\n                    continue\n        elif isinstance(item, (int, float)):\n            values.append(float(item))\n        elif isinstance(item, str):\n            try:\n                values.append(float(item))\n            except ValueError:\n                continue\n    \n    return values\n\n# Extract timeseries values from ARR format\nprecip_values = extract_values(precip_raw)\ntemp_values = extract_values(temp_raw)\n\n# Convert to numpy arrays\nprecip = np.array(precip_values, dtype=float)\ntemp = np.array(temp_values, dtype=float)\n\n# Remove NaN values\nprecip = precip[~np.isnan(precip)]\ntemp = temp[~np.isnan(temp)]\n\n# Ensure same length\nmin_len = min(len(precip), len(temp))\nif min_len == 0:\n    raise ValueError('No valid numeric data extracted from transform blocks')\n\nprecip = precip[:min_len]\ntemp = temp[:min_len]\n\nif len(precip) < 12:\n    raise ValueError(f'Insufficient data for ET calculation (need at least 12 points, got {len(precip)})')\n\n# Constants\nlat = 40.0  # Latitude in degrees\ntemp_c = temp if np.mean(temp) < 100 else temp - 273.15  # Assume Celsius if mean < 100\n\n# Calculate saturation vapor pressure\nes = 0.6108 * np.exp(17.27 * temp_c / (temp_c + 237.3))  # kPa\nrh = 0.70  # Relative humidity\nea = es * rh  # Actual vapor pressure\ndelta = 4098 * es / ((temp_c + 237.3) ** 2)  # Slope of vapor pressure curve\n\n# Psychrometric constant\npressure = 101.3  # kPa\ngamma = 0.665e-3 * pressure  # kPa/°C\n\n# Net radiation (simplified)\njulian_day = np.arange(1, len(temp) + 1)\nsolar_constant = 1367  # W/m²\ndr = 1 + 0.033 * np.cos(2 * np.pi * julian_day / 365)\ndelta_lat = 23.45 * np.sin(2 * np.pi * (284 + julian_day) / 365) * np.pi / 180\nlat_rad = lat * np.pi / 180\nomega_s = np.arccos(-np.tan(lat_rad) * np.tan(delta_lat))\nra = 24 * 60 / np.pi * solar_constant * dr * (\n    omega_s * np.sin(lat_rad) * np.sin(delta_lat) +\n    np.cos(lat_rad) * np.cos(delta_lat) * np.sin(omega_s)\n)  # MJ/(m²·day)\n\nalbedo = 0.23\nrs = 0.25 * ra\nrns = (1 - albedo) * rs\nrso = 0.75 * ra\nrs_ratio = np.clip(rs / rso if np.any(rso > 0) else np.ones_like(rs), 0, 1)\nstefan_boltzmann = 4.903e-9\ntemp_k = temp_c + 273.15\nrln = stefan_boltzmann * temp_k ** 4 * (0.34 - 0.14 * np.sqrt(ea)) * (1.35 * rs_ratio - 0.35)\nrn = rns - rln  # Net radiation\n\n# Penman-Monteith equation\nu2 = 2.0  # Wind speed (m/s)\nG = np.zeros_like(rn)  # Soil heat flux (negligible)\nnumerator = 0.408 * delta * (rn - G) + gamma * (900 / (temp_c + 273)) * u2 * (es - ea)\ndenominator = delta + gamma * (1 + 0.34 * u2)\net0 = np.maximum(numerator / denominator, 0)  # mm/day\n\n# Water balance\nwater_balance = precip - et0\ncumulative_balance = np.cumsum(water_balance)\navailable_water = np.cumsum(precip) - np.cumsum(et0)\nactual_et = np.minimum(et0, precip + np.maximum(0, available_water))\n\nresult = {\n    'evapotranspiration': {\n        'potential_et': et0.tolist(),\n        'actual_et': actual_et.tolist(),\n        'mean_daily_et': float(np.mean(et0)),\n        'total_annual_et': float(np.sum(et0))\n    },\n    'water_balance': {\n        'precipitation': precip.tolist(),\n        'water_balance': water_balance.tolist(),\n        'cumulative_balance': cumulative_balance.tolist(),\n        'net_balance': float(np.sum(water_balance))\n    },\n    'statistics': {\n        'total_precipitation': float(np.sum(precip)),\n        'mean_precipitation': float(np.mean(precip)),\n        'mean_temperature': float(np.mean(temp_c)),\n        'data_points': len(precip)\n    }\n}\n\nreturn result",
+          "lastModified": "2025-12-11T14:04:06.699Z",
+          "position": {
+            "x": 297,
+            "y": 69
+          },
+          "description": "Code Block description",
+          "meta": "Default meta",
+          "id": "analyze-Code Block-1",
+          "name": "MY_FIRST_CB",
+          "codeBlockName": "MY_FIRST_CB",
+          "libraries": [],
+          "codeBlockType": "code",
+          "timestamp": "2025-12-11T14:04:06.700Z"
+        },
+        "status": "completed"
+      },
+      {
+        "uniqueId": "num-precip",
+        "name": "NUM_PRECIP",
+        "itemName": "transform",
+        "type": "data",
+        "parameters": {},
+        "arguments": {
+          "pick": "1",
+          "mode": "flatten"
+        },
+        "data": [
+          "extract-precip"
+        ],
+        "settings": {
+          "name": "NUM_PRECIP",
+          "parameters": {},
+          "arguments": {
+            "pick": "1",
+            "mode": "flatten"
+          },
+          "uniqueId": "num-precip",
+          "x": 297,
+          "y": 61,
+          "selectedFunction": "extract-precip",
+          "data": [
+            "extract-precip"
+          ],
+          "type": "data",
+          "itemName": "transform",
+          "position": {
+            "x": 40,
+            "y": 149
+          }
+        },
+        "status": "completed"
+      },
+      {
+        "uniqueId": "cumulative-wb",
+        "name": "CUMULATIVE_WB",
+        "itemName": "transform",
+        "type": "data",
+        "parameters": {
+          "save": "cumulative_balance"
+        },
+        "arguments": {},
+        "data": [
+          "analyze-Code Block-1"
+        ],
+        "settings": {
+          "name": "CUMULATIVE_WB",
+          "parameters": {
+            "save": "cumulative_balance"
+          },
+          "arguments": {},
+          "uniqueId": "cumulative-wb",
+          "x": 571,
+          "y": 13,
+          "selectedFunction": "analyze-Code Block-1",
+          "data": [
+            "analyze-Code Block-1"
+          ],
+          "type": "data",
+          "itemName": "transform"
+        },
+        "status": "completed"
+      },
+      {
+        "uniqueId": "water-balance-chart",
+        "name": "WATER_BALANCE_CHART",
+        "itemName": "draw",
+        "type": "visualization",
+        "parameters": {
+          "type": "chart",
+          "partition": "true",
+          "maxPoints": "150"
+        },
+        "arguments": {
+          "names": "cumulative, net"
+        },
+        "data": [
+          "cumulative-wb",
+          "water-balance"
+        ],
+        "settings": {
+          "name": "WATER_BALANCE_CHART",
+          "parameters": {
+            "type": "chart",
+            "partition": "true",
+            "maxPoints": "150"
+          },
+          "arguments": {
+            "names": "cumulative, net"
+          },
+          "uniqueId": "water-balance-chart",
+          "x": 773,
+          "y": 474,
+          "selectedFunction": "cumulative-wb",
+          "data": [
+            "cumulative-wb",
+            "water-balance"
+          ],
+          "itemName": "draw",
+          "type": "visualization"
+        },
+        "status": "completed"
+      },
+      {
+        "uniqueId": "water-balance",
+        "name": "WATER_BALANCE",
+        "itemName": "transform",
+        "type": "data",
+        "parameters": {
+          "save": "water_balance"
+        },
+        "arguments": {},
+        "data": [
+          "analyze-Code Block-1"
+        ],
+        "settings": {
+          "name": "WATER_BALANCE",
+          "parameters": {
+            "save": "water_balance"
+          },
+          "arguments": {},
+          "uniqueId": "water-balance",
+          "x": 512,
+          "y": 391,
+          "selectedFunction": "analyze-Code Block-1",
+          "data": [
+            "analyze-Code Block-1"
+          ],
+          "type": "data",
+          "itemName": "transform"
+        },
+        "status": "completed"
+      }
+    ],
+    "connections": [],
+    "created": "2025-12-11T14:26:10.496Z"
+  }
+}

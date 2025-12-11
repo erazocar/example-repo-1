@@ -1,0 +1,56 @@
+[
+  {
+    "id": "precip-data-raw",
+    "workflowId": "workflow-9",
+    "itemName": "retrieve",
+    "timestamp": "2025-12-11T14:26:12.271Z"
+  },
+  {
+    "id": "clean-temp",
+    "workflowId": "seasonalityanalysis-stausw00014990-2020-2024",
+    "itemName": "interoutliers",
+    "timestamp": "2025-12-11T14:26:12.274Z"
+  },
+  {
+    "id": "seasonal",
+    "workflowId": "seasonalityanalysis-stausw00014990-2020-2024",
+    "itemName": "seasonalDecompose",
+    "timestamp": "2025-12-11T14:26:12.279Z"
+  },
+  {
+    "id": "seasonal-decomposition-temp",
+    "workflowId": "seasonalityanalysis-stausw00014990-2020-2024",
+    "itemName": "draw",
+    "timestamp": "2025-12-11T14:26:12.280Z"
+  },
+  {
+    "id": "analyze-Code Block-1",
+    "workflowId": "seasonalityanalysis-stausw00014990-2020-2024",
+    "itemName": "Code Block",
+    "timestamp": "2025-12-11T14:26:12.288Z"
+  },
+  {
+    "id": "num-precip",
+    "workflowId": "seasonalityanalysis-stausw00014990-2020-2024",
+    "itemName": "transform",
+    "timestamp": "2025-12-11T14:26:12.290Z"
+  },
+  {
+    "id": "cumulative-wb",
+    "workflowId": "seasonalityanalysis-stausw00014990-2020-2024",
+    "itemName": "transform",
+    "timestamp": "2025-12-11T14:26:12.293Z"
+  },
+  {
+    "id": "water-balance-chart",
+    "workflowId": "seasonalityanalysis-stausw00014990-2020-2024",
+    "itemName": "draw",
+    "timestamp": "2025-12-11T14:26:12.294Z"
+  },
+  {
+    "id": "water-balance",
+    "workflowId": "seasonalityanalysis-stausw00014990-2020-2024",
+    "itemName": "transform",
+    "timestamp": "2025-12-11T14:26:12.296Z"
+  }
+]

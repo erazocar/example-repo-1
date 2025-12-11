@@ -1,0 +1,63 @@
+{
+    "name": "HydroBlox Results Viewer",
+    "short_name": "HydroBlox",
+    "description": "Interactive visualization of hydrological modeling results",
+    "start_url": "./",
+    "display": "standalone",
+    "background_color": "#ffffff",
+    "theme_color": "#3498db",
+    "orientation": "any",
+    "categories": ["science", "visualization", "utilities"],
+    "icons": [
+        {
+            "src": "icons/icon-192.svg",
+            "sizes": "192x192",
+            "type": "image/svg+xml",
+            "purpose": "any"
+        },
+        {
+            "src": "icons/icon-512.svg",
+            "sizes": "512x512",
+            "type": "image/svg+xml",
+            "purpose": "any"
+        },
+        {
+            "src": "icons/maskable-icon.svg",
+            "sizes": "512x512",
+            "type": "image/svg+xml",
+            "purpose": "maskable"
+        }
+    ],
+    "shortcuts": [
+        {
+            "name": "View Maps",
+            "short_name": "Maps",
+            "description": "View spatial data visualizations",
+            "url": "./?tab=maps",
+            "icons": [{ "src": "icons/map-icon.png", "sizes": "96x96" }]
+        },
+        {
+            "name": "View Charts",
+            "short_name": "Charts",
+            "description": "View data charts and graphs",
+            "url": "./?tab=charts",
+            "icons": [{ "src": "icons/chart-icon.png", "sizes": "96x96" }]
+        }
+    ],
+    "screenshots": [
+        {
+            "src": "screenshots/map-view.png",
+            "sizes": "1280x720",
+            "type": "image/png",
+            "platform": "wide",
+            "label": "Map visualization in HydroBlox"
+        },
+        {
+            "src": "screenshots/chart-view.png",
+            "sizes": "1280x720",
+            "type": "image/png",
+            "platform": "wide",
+            "label": "Chart visualization in HydroBlox"
+        }
+    ]
+}

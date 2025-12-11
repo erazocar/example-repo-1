@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="512" height="512" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg">
+  <rect width="512" height="512" fill="#3498db"/>
+  <circle cx="256" cy="256" r="122.88" fill="white"/>
+  <ellipse cx="256" cy="256" rx="49.152" ry="24.576" fill="#3498db"/>
+  <text x="256" y="286.72" text-anchor="middle" font-family="Arial, sans-serif" font-size="61.44" font-weight="bold" fill="#3498db">H</text>
+</svg>
+

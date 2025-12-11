@@ -1,0 +1,10 @@
+{
+  "name": "A seasonality analysis and water balance on USW00014990",
+  "title": "A seasonality analysis and water balance on USW00014990",
+  "datasources": "Datasources used:\n\n- NOAA GCHN through WaterOneFlow",
+  "description": "This application highlights both seasonality components of the temperature and precipitation estimates using cumulative water balances.",
+  "version": "1.0.0",
+  "exportDate": "2025-12-11T14:26:10.491Z",
+  "layout": "default",
+  "workflowCount": 2
+}

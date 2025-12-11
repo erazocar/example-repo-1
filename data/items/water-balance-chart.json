@@ -1,0 +1,28 @@
+{
+  "data": null,
+  "settings": {
+    "name": "WATER_BALANCE_CHART",
+    "parameters": {
+      "type": "chart",
+      "partition": "true",
+      "maxPoints": "150"
+    },
+    "arguments": {
+      "names": "cumulative, net"
+    },
+    "uniqueId": "water-balance-chart",
+    "x": 773,
+    "y": 474,
+    "selectedFunction": "cumulative-wb",
+    "data": [
+      "cumulative-wb",
+      "water-balance"
+    ],
+    "itemName": "draw",
+    "type": "visualization"
+  },
+  "uniqueId": "water-balance-chart",
+  "itemName": "draw",
+  "type": "visualization",
+  "name": "WATER_BALANCE_CHART"
+}
